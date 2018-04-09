@@ -1,9 +1,20 @@
 # This file is part of the IntervalArithmetic.jl package; MIT licensed
 
-half_pi(::Type{T}) where T = pi_interval(T) / 2
-half_pi(x::T) where T<:AbstractFloat = half_pi(T)
 
-two_pi(::Type{T})  where T = pi_interval(T) * 2
+# hard code this for efficiency:
+const one_over_half_pi_interval = inv(0.5 * pi_interval(Float64))
+
+"""
+Multiply an interval by a positive constant.
+For efficiency, does not check that the constant is positive.
+"""
+multiply_by_positive_constant(α, x::Interval) = @round(α*x.lo, α*x.hi)
+
+half_pi(::Type{Float64}) where {T} = multiply_by_positive_constant(0.5, pi_interval(T))
+half_pi(::Type{T}) where {T} = 0.5 * pi_interval(T)
+half_pi(x::T) where {T<:AbstractFloat} = half_pi(T)
+
+two_pi(::Type{T})  where {T} = multiply_by_positive_constant(2.0, pi_interval(T))
 
 range_atan2(::Type{T}) where {T<:Real} = Interval(-(pi_interval(T).hi), pi_interval(T).hi)
 half_range_atan2(::Type{T}) where {T} = (temp = half_pi(T); Interval(-(temp.hi), temp.hi) )
@@ -21,7 +32,15 @@ Tucker, *Validated Numerics*."""
 
 function find_quadrants(x::AbstractFloat)
     temp = x / half_pi(x)
-    (floor(temp.lo), floor(temp.hi))
+
+    return SVector(floor(temp.lo), floor(temp.hi))
+end
+
+function find_quadrants(x::Float64)
+    temp = multiply_by_positive_constant(x, one_over_half_pi_interval)
+    # x / half_pi(Float64)
+
+    return SVector(floor(temp.lo), floor(temp.hi))
 end
 
 function sin(a::Interval{T}) where T
