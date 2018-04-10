@@ -2,7 +2,10 @@
 
 
 # hard code this for efficiency:
-const one_over_half_pi_interval = inv(0.5 * pi_interval(Float64))
+const half_pi_interval = 0.5 * pi_interval(Float64)
+const one_over_half_pi_interval = inv(half_pi_interval)
+const two_pi_interval = 2.0 * pi_interval(Float64)
+
 
 """
 Multiply an interval by a positive constant.
@@ -10,11 +13,12 @@ For efficiency, does not check that the constant is positive.
 """
 multiply_by_positive_constant(α, x::Interval) = @round(α*x.lo, α*x.hi)
 
-half_pi(::Type{Float64}) where {T} = multiply_by_positive_constant(0.5, pi_interval(T))
+half_pi(::Type{Float64}) = half_pi_interval
 half_pi(::Type{T}) where {T} = 0.5 * pi_interval(T)
 half_pi(x::T) where {T<:AbstractFloat} = half_pi(T)
 
-two_pi(::Type{T})  where {T} = multiply_by_positive_constant(2.0, pi_interval(T))
+two_pi(::Type{Float64}) = two_pi_interval
+two_pi(::Type{T}) where {T} = 2.0 * pi_interval(T)
 
 range_atan2(::Type{T}) where {T<:Real} = Interval(-(pi_interval(T).hi), pi_interval(T).hi)
 half_range_atan2(::Type{T}) where {T} = (temp = half_pi(T); Interval(-(temp.hi), temp.hi) )
